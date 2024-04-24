@@ -1,12 +1,10 @@
-let product = "Socks";
-
 let app = new Vue({
     el: '#app',
     data: {
         product: "Socks",
         image: "./assets/vmSocks-blue-onWhite.jpg",
         altText: "A pair of socks",
-        inStock: true,
+        inStock: false,
         details: ['80% cotton', '20% polyester', 'Gender-neutral'],
         variants: [
             {
@@ -25,12 +23,6 @@ let app = new Vue({
     methods: {
         addToCart() {
             this.cart += 1
-        },
-        deleteToCart() {
-            if(this.cart > 0){
-                this.cart -= 1
-            }
-            else return
         },
         updateProduct(variantImage) {
             this.image = variantImage
