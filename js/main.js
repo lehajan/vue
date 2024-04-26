@@ -15,7 +15,19 @@ Vue.component("product-details", {
     }
 })
 
-Vue.component('shipping', {
+Vue.component('product-shipping', {
+    props: {
+        reviews: {
+            type: Array,
+            required: false
+        }
+    },
+    data() {
+        return {
+            tabs: ['Reviews', 'Make a Review'],
+            selectedTab: 'Reviews'
+        }
+    },
     template: `
     <p>Shipping: {{ shipping }}</p>
     `,
@@ -47,8 +59,8 @@ Vue.component('product-tabs', {
                @click="selectedTab = tab"
          >{{ tab }}</span>
        </ul>
-       <div v-show="selectedTab === 'Make a Review'">
-         <p v-if="!reviews.length">There are no reviews yet.</p>
+     <div v-show="selectedTab === 'Reviews'">
+     <p v-if="!reviews.length">There are no reviews yet.</p>
          <ul>
            <li v-for="review in reviews">
            <p>{{ review.name }}</p>
@@ -56,16 +68,16 @@ Vue.component('product-tabs', {
            <p>{{ review.review }}</p>
            </li>
          </ul>
-       </div>
-       <div>
-            <product-review></product-review>       
+     </div>
+       <div v-show="selectedTab === 'Make a Review'">
+         <product-review></product-review>
        </div>
        <div v-show="selectedTab === 'Shipping'">
          <product-shipping></product-shipping>
        </div>
        <div v-show="selectedTab === 'Details'">
          <product-details></product-details>
-       </div
+       </div>
      </div>
 `,
     data() {
@@ -109,6 +121,17 @@ Vue.component('product-review', {
      <option>1</option>
    </select>
  </p>
+ <p>
+        <label for="choice">Would you recommend this product?</label>
+        <div>
+            <input type="radio" id="yes" name="choice" v-model="choice" value="yes"/>
+            <label for="yes">yes</label>
+        </div>
+        <div>
+            <input type="radio" id="no" name="choice" v-model="choice" value="no" />
+            <label for="no">no</label>
+        </div>
+    </p>
 
  <p>
    <input type="submit" value="Submit"> 
@@ -121,7 +144,8 @@ Vue.component('product-review', {
             name: null,
             review: null,
             rating: null,
-            errors: []
+            errors: [],
+            choice: null
         }
     },
     methods: {
@@ -130,16 +154,19 @@ Vue.component('product-review', {
                 let productReview = {
                     name: this.name,
                     review: this.review,
-                    rating: this.rating
+                    rating: this.rating,
+                    choice: this.choice
                 }
                 eventBus.$emit('review-submitted', productReview)
                 this.name = null
                 this.review = null
                 this.rating = null
+                this.choice = null
             } else {
                 if (!this.name) this.errors.push("Name required.")
                 if (!this.review) this.errors.push("Review required.")
                 if (!this.rating) this.errors.push("Rating required.")
+                if (!this.choice) this.errors.push("Choice required.")
             }
         }
     }
@@ -167,9 +194,6 @@ Vue.component('product', {
            <h1>{{ title }}</h1>
            <p v-if="inStock">In stock</p>
            <p v-else>Out of Stock</p>
-           <ul>
-               <li v-for="detail in details">{{ detail }}</li>
-           </ul>
           
            <div
                    class="color-box"
@@ -186,9 +210,17 @@ Vue.component('product', {
            >
                Add to cart
            </button>    
+           <button 
+                v-on:click="deleteFromCart"
+                :disabled="!inStock"
+                :class="{ disabledButton: !inStock }"
+           >
+                Delete drom cart
+                </button>
        </div>           
        <div>
            <product-tabs :reviews="reviews"></product-tabs>
+       </div>
        </div>
  `,
     data() {
@@ -217,6 +249,9 @@ Vue.component('product', {
     methods: {
         addToCart() {
             this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
+        },
+        deleteFromCart() {
+            this.$emit('delete-from-cart', this.variants[this.selectedVariant].variantId)
         },
         updateProduct(index) {
             this.selectedVariant = index;
@@ -252,6 +287,9 @@ let app = new Vue({
     methods: {
         updateCart(id) {
             this.cart.push(id);
+        },
+        deleteFromCart(id) {
+            this.cart.pop(id)
         }
     }
 })
